@@ -4,26 +4,20 @@ trigger:
 pool:
   name: 'Default'
 
-variables:
-  dockerRegistryServiceConnection: 'saif-acr-connection'
-  imageRepository: 'saif-app'
-  containerRegistry: 'saifacr.azurecr.io'
-  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  tag: '$(Build.BuildId)'
-
 stages:
-- stage: Build
-  displayName: Build and push stage
+- stage: BuildAndDeploy
+  displayName: 'Build and Deploy Stage'
   jobs:
-  - job: Build
-    displayName: Build
+  - job: DeployJob
+    displayName: 'Deploy to My Server'
     steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
-      inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
-        tags: |
-          $(tag)
+    - checkout: self
+      displayName: 'Pull Code from GitHub'
+
+    - script: |
+        echo "Starting deployment process..."
+        # ফাইলটি সার্ভারের ওয়েব ডিরেক্টরিতে কপি করা হচ্ছে
+        sudo cp $(Build.SourcesDirectory)/index.html /var/www/html/
+        # ফাইলের পারমিশন ঠিক করা হচ্ছে যেন সবাই ব্রাউজারে দেখতে পারে
+        sudo chmod 644 /var/www/html/index.html
+      displayName: 'Copy index.html to Apache Web Server'
